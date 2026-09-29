@@ -27,6 +27,37 @@ int main(void) {
     size_t payload_len = strlen(payload);
 
     // Buffer completo
-    
+    unsigned char trama_Ethernet[14 + 1500];  // 14 bytes cabecera + payload
+    size_t offset = 0;
 
+     //Copiar MAC destino al inicio
+    memmove(trama_Ethernet + offset, mac_destino, 6);
+    offset += 6;
+
+    //Copiar MAC origen después
+    memmove(trama_Ethernet + offset, mac_origen, 6);
+    offset += 6;
+
+    // Copiar Ethertype
+    unsigned short ethertype = htons(0x88B5);
+    memmove(trama_Ethernet + offset, &ethertype, 2);
+    offset += 2;
+
+    //Copiar payload
+    memmove(trama_Ethernet + offset, payload, payload_len);
+    offset += payload_len;
+
+    // Enviamos la trama por la interfaz
+    struct sockaddr_ll sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sll_family   = AF_PACKET;
+    sa.sll_ifindex  = ifindex;
+    sa.sll_halen    = 6;
+    memcpy(sa.sll_addr, mac_destino, 6);
+
+    sendto(socket_emisor, trama_Ethernet, offset, 0,(struct sockaddr*)&sa, sizeof(sa));
+
+    printf("Trama enviada (%zu bytes)\n", offset);
+    close(socket_emisor);
+    return 0;
 }
