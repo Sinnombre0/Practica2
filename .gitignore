@@ -1,0 +1,8 @@
+#Binarios compilados
+emisor
+receptor
+*.o
+
+#Sistema
+.DS_Store
+*.swp
