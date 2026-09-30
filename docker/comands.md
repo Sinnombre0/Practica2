@@ -1,8 +1,8 @@
-# 1. Construimos la capa
+# 1. Construimos la imagen del docker
 docker build -t capa2 .
 
 # 2. Creamos la red virtual 
-docker network create redes2027
+docker network create practica2redes
 
 # 3. Receptor
 docker run -it --rm --name receptor --network redes2027 \
