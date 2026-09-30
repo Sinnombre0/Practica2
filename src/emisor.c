@@ -10,21 +10,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Funcion para agregar ruido
-void aplicar_ruido(unsigned char *datos, size_t len, int probabilidad) {
-    for (size_t i = 0; i < len; i++)
-        if (rand() % 100 < probabilidad)
-            datos[i] ^= (1 << (rand() % 8));
-}
-
 int main(void) {
     srand(time(NULL));  
     //Creamos el socket para simular la capa 2
     int socket_emisor = socket(AF_PACKET, SOCK_RAW, htons(0x88B5)); // 0x88B5 para el protocolo personalizado
-    if(socket_emisor < 0){
-        perror("socket");
-        return 1;
-    }
+  
     // Declaramos ifr para pasar la informacion e inicalizamos memset con 0
     struct ifreq ifr;
     memset(&ifr, 0, sizeof(ifr));
@@ -50,32 +40,28 @@ int main(void) {
     unsigned char trama_Ethernet[14 + 1500];  // 14 bytes cabecera + payload
     size_t offset = 0;
 
-     //Copiar MAC destino al inicio
+     //Copiamos la MAC de destino
     memmove(trama_Ethernet + offset, mac_destino, 6);
     offset += 6;
 
-    //Copiar MAC origen después
+    //Copiamos la MAC de origen
     memmove(trama_Ethernet + offset, mac_origen, 6);
     offset += 6;
 
-    // Copiar Ethertype
     uint16_t ethertype = htons(0x88B5);
     memmove(trama_Ethernet + offset, &ethertype, 2);
     offset += 2;
 
-    //Copiar payload
     memmove(trama_Ethernet + offset, payload, payload_len);
     offset += payload_len;
 
-    // Enviamos la trama por la interfaz
+    // Enviamos el mensaje  por la interfaz
     struct sockaddr_ll sa;
     memset(&sa, 0, sizeof(sa));
     sa.sll_family   = AF_PACKET;
     sa.sll_ifindex  = ifindex;
     sa.sll_halen    = 6;
     memcpy(sa.sll_addr, mac_destino, 6);
-
-    aplicar_ruido(trama_Ethernet + 14, offset - 14, 5); 
 
     sendto(socket_emisor, trama_Ethernet, offset, 0,(struct sockaddr*)&sa, sizeof(sa));
 

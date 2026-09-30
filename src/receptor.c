@@ -11,10 +11,6 @@
 int main(){
     // Creamos el socket que recibe el mensaje
     int socket_receptor = socket(AF_PACKET, SOCK_RAW, htons(0x88B5));
-    if(socket_receptor < 0){
-        perror("socket");
-        return 1;
-    }
 
     struct ifreq ifr;
     memset(&ifr, 0, sizeof(ifr));
@@ -32,22 +28,17 @@ int main(){
 
     while (1) {
         ssize_t n = recvfrom(socket_receptor, buffer, sizeof(buffer), 0, NULL, NULL);
-        if (n < 0) {
-            perror("recvfrom");
-            break;
-        }
 
-        // Verificamos Ethertype 
         unsigned short ethertype = (buffer[12] << 8) | buffer[13];
 
         // Extraemos MACs y payload
-        unsigned char *mac_destino = buffer;         // bytes 0-5
-        unsigned char *mac_origen  = buffer + 6;     // bytes 6-11
-        unsigned char *payload     = buffer + 14;    // desde byte 14
+        unsigned char *mac_destino = buffer;        
+        unsigned char *mac_origen  = buffer + 6;     
+        unsigned char *payload     = buffer + 14;   
         size_t payload_len = n - 14;
 
         //Imprimir info de la trama
-        printf("\n=== Trama recibida (%zd bytes) ===\n", n);
+        printf("\n=== Mensaje recibido (%zd bytes) ===\n", n);
         printf("MAC destino: %02X:%02X:%02X:%02X:%02X:%02X\n",
                mac_destino[0], mac_destino[1], mac_destino[2],
                mac_destino[3], mac_destino[4], mac_destino[5]);
@@ -57,7 +48,7 @@ int main(){
         printf("Ethertype  : 0x%04X\n", ethertype);
         printf("Payload (%zu bytes): ", payload_len);
 
-        // Imprimir payload como texto 
+        // Imprimir mensaje
         for (size_t i = 0; i < payload_len; i++) {
             unsigned char c = payload[i];
             putchar((c >= 32 && c < 127) ? c : '.');
