@@ -1,7 +1,7 @@
 # 1. Construimos la capa
 docker build -t capa2 .
 
-# 2. Rreamos la red virtual 
+# 2. Creamos la red virtual 
 docker network create redes2027
 
 # 3. Receptor
